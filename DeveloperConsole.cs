@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -50,8 +49,8 @@ namespace PunIntended.Tools
                 OnPressedEnter += PressedEnter;
                 OnPressedTab += TryAutoComplete;
 
-                OnPressedDown += MoveDown;
-                OnPressedUp += MoveUp;
+                OnPressedDown += AutoCompleteSelectionMoveDown;
+                OnPressedUp += AutoCompleteSelectionMoveUp;
             }
         }
 
@@ -64,8 +63,8 @@ namespace PunIntended.Tools
             OnPressedEnter -= PressedEnter;
             OnPressedTab -= TryAutoComplete;
 
-            OnPressedDown -= MoveDown;
-            OnPressedUp -= MoveUp;
+            OnPressedDown -= AutoCompleteSelectionMoveDown;
+            OnPressedUp -= AutoCompleteSelectionMoveUp;
         }
 
         // we should probably optimize this in some way. looping through every method could get slow for bigger projects.
@@ -121,7 +120,7 @@ namespace PunIntended.Tools
             }
         }
 
-        private static void MoveUp()
+        private static void AutoCompleteSelectionMoveUp()
         {
             _autoCompleteIndex--;
             if (_autoCompleteIndex < 0)
@@ -130,7 +129,7 @@ namespace PunIntended.Tools
             }
         }
 
-        private static void MoveDown()
+        private static void AutoCompleteSelectionMoveDown()
         {
             _autoCompleteIndex++;
             int maxIndex = GetAutoCompletedCommands().Count - 1;
@@ -142,6 +141,7 @@ namespace PunIntended.Tools
 
         private static void DrawGUI()
         {
+            // check if we need to close the window
             if (Event.current.Equals(Event.KeyboardEvent(_closeKeyCode.ToString())))
             {
                 OnClose();
@@ -370,12 +370,18 @@ namespace PunIntended.Tools
         private static void ExecuteCommand(MethodInfo methodInfo, object[] parameters)
         {
             Type classMethodType = methodInfo.DeclaringType;
-            string message = GetCommandAsString(methodInfo);
             if (classMethodType.IsSubclassOf(typeof(UnityEngine.Object)))
             {
-                // find all instances of command on a monobehaviour, 
-                WriteLine(_currentUserInput, Color.white);
+                // find all instances of command on a monobehaviour
                 List<UnityEngine.Object> classInstances = UnityEngine.Object.FindObjectsOfType(classMethodType).ToList();
+                if (classInstances.Count < 1)
+                {
+                    string message = GetCommandAsString(methodInfo);
+                    WriteLine($"no instances for {message} were found!", Color.red);
+                    return;
+                }
+
+                WriteLine(_currentUserInput, Color.white);
                 foreach (MonoBehaviour o in classInstances.Cast<MonoBehaviour>())
                 {
                     methodInfo.Invoke(o, parameters);
