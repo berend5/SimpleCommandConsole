@@ -11,7 +11,7 @@ public class ExampleHowToOpenConsole : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            DeveloperConsole.Open(closeKeyCode: KeyCode.Escape);
+            SimpleCommandConsole.Open(closeKeyCode: KeyCode.Escape);
         }
     }
 }

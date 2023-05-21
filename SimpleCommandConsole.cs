@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace PunIntended.Tools
 {
-    public static class DeveloperConsole
+    public static class SimpleCommandConsole
     {
         private static string _currentUserInput;
         private static Vector2 _consoleScroll;
@@ -235,8 +235,8 @@ namespace PunIntended.Tools
             List<string> commands = new List<string>();
             foreach (string command in _availableCommands.Keys)
             {
-                string loweredCommand = new string(command).ToLower();
-                string loweredUserInput = new string(_currentUserInput).ToLower();
+                string loweredCommand = new string(command.ToCharArray()).ToLower();
+                string loweredUserInput = new string(_currentUserInput.ToCharArray()).ToLower();
                 if (loweredCommand.Contains(loweredUserInput))
                 {
                     commands.Add(command);
